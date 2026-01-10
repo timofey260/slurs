@@ -1,0 +1,6 @@
+./obj/
+./out/
+./raylib/
+./.idea
+./app.test
+./.

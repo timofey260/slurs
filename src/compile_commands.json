@@ -1,0 +1,72 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-D",
+      "DEBUG",
+      "-c",
+      "-I",
+      "../raylib/src/",
+      "-I",
+      "./include/",
+      "-ggdb",
+      "./main.c"
+    ],
+    "directory": "/home/tim/projects/slurs/src",
+    "file": "/home/tim/projects/slurs/src/main.c"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-D",
+      "DEBUG",
+      "-c",
+      "-I",
+      "../raylib/src/",
+      "-I",
+      "./include/",
+      "-ggdb",
+      "./window.c"
+    ],
+    "directory": "/home/tim/projects/slurs/src",
+    "file": "/home/tim/projects/slurs/src/window.c"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-D",
+      "DEBUG",
+      "-I",
+      "../raylib/src/",
+      "-I",
+      "./include/",
+      "-ggdb",
+      "-o",
+      "slurs.so",
+      "./main.c"
+    ],
+    "directory": "/home/tim/projects/slurs/src",
+    "file": "/home/tim/projects/slurs/src/main.c",
+    "output": "/home/tim/projects/slurs/src/slurs.so"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-D",
+      "DEBUG",
+      "-I",
+      "../raylib/src/",
+      "-I",
+      "./include/",
+      "-ggdb",
+      "-o",
+      "slurs.so",
+      "./window.c"
+    ],
+    "directory": "/home/tim/projects/slurs/src",
+    "file": "/home/tim/projects/slurs/src/window.c",
+    "output": "/home/tim/projects/slurs/src/slurs.so"
+  }
+]
