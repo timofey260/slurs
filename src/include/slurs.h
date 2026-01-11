@@ -7,13 +7,24 @@
 #define CHAR_HEIGHT 12
 #define SCALE 4
 #define FPS 60
+#define ATTR_OFFSET (16 - ATTR_COUNT)
 
 #define CHARIMAGE_WIDTH CHAR_WIDTH * 32
 #define CHARIMAGE_HEIGHT CHAR_HEIGHT * 16
 
+typedef enum {
+  ATTR_BOLD = 1,
+  ATTR_DIM = 1 << 1,
+  ATTR_BLINK = 1 << 2,
+  ATTR_ITALIC = 1 << 3,
+  ATTR_COUNT = 4
+} CHAR_ATTRIBUTES;
+
 typedef struct {
-  bool dirty;
   int x, y, w, h;
+  int *characters;
+  bool dirty;
+  int alphachar;
 } SlursWindow;
 
 typedef struct {
@@ -23,6 +34,7 @@ typedef struct {
   Texture character_map;
   RenderTexture viewport_texture;
   SlursWindow *main_window;
+  Color background_color;
 } SlursMainWindow;
 
 typedef struct {
@@ -40,10 +52,68 @@ typedef struct {
   bool from_resource;
 } FilePath;
 
+// files.c
+
+// Add path to character image
+//
+// When image path gets added,
+// on InitSlurs it will load all images
+// into one that will then be passed into shader
+//
+// NOTE: This function should be called BEFORE InitSlurs
 void AddImagePath(const char *path, bool fromResource);
+// Change shader path, allows for custom character shader
 void SetShaderPath(const char *path, bool fromResource);
-void InitSlurs(int width, int height);
+
+// slurs.c
+
+// Initiate Slurs engine
+//
+// NOTE: This function should be called BEFORE InitSlurs
+SlursWindow *InitSlurs(int width, int height);
+// Runs slurs's update loop
 void RunSlurs();
+// Close slurs engine and unload all assets
 void CloseSlurs();
+// Returns main slurs window
+SlursWindow *GetMainWindow();
+
+// draw.c
+
+// Draws str on specified window
+void AddStr(SlursWindow *window, const char *text, int x, int y,
+            CHAR_ATTRIBUTES attr);
+// Converts from window position to character position
+//
+// NOTE: Does not prevent going outside of characters array
+// so can access unallocated memory
+int Window2Char(SlursWindow *window, int x, int y);
+// Adds attribute to character
+int AddAttr(int ch, CHAR_ATTRIBUTES attr);
+// Update shader values to screen ones
+void RefreshWin(SlursWindow *window);
+// Clear window to specified character
+//
+// Does not refresh screen
+void ClearWindow(SlursWindow *window, int character);
+
+// window.c
+
+// Create new window
+SlursWindow *NewWin(int x, int y, int w, int h);
+// Close window and free window memory
+//
+// NOTE: Closing main window will result in a crash or undefined behavior
+void CloseWin(SlursWindow *window);
+// Resize window
+//
+// NOTE: Resizing main window is prohibited
+void ResizeWin(SlursWindow *window, int w, int h);
+// Set window's alpha character
+//
+// Window alpha character is a character that doesn't update screens character
+//
+// Setting character to 0 makes all characters opaque
+void SetWinAlphachar(SlursWindow *window, int alphachar);
 
 #endif // INCLUDEsrcwindowwindow.h_

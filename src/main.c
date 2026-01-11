@@ -7,7 +7,9 @@
 int main(int argc, char *argv[]) {
   SetShaderPath("src/assets/textshader.fs", false);
   AddImagePath("src/assets/characters.png", false);
-  InitSlurs(32, 16);
+  SlursWindow *window = InitSlurs(32, 16);
+  AddStr(window, "Hello, world!", 0, 0, 0);
+  RefreshWin(window);
   RunSlurs();
   CloseSlurs();
   return 0;

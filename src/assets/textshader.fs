@@ -1,6 +1,7 @@
 #version 330
 
 #define CHARACTER_AMOUNT %char_amount%
+#define PALETTE_SIZE 256
 
 // Character map size(in characters)
 
@@ -22,6 +23,10 @@ uniform int DISPLAY_WIDTH;
 uniform int DISPLAY_HEIGHT;
 
 uniform int text_characters[CHARACTER_AMOUNT];
+uniform int fg[CHARACTER_AMOUNT];
+uniform int bg[CHARACTER_AMOUNT];
+
+uniform vec3 palette[PALETTE_SIZE];
 // Output fragment color
 out vec4 finalColor;
 
@@ -42,6 +47,11 @@ void main()
 
     vec4 character_color = texture(characters, (character2offset(character_id) + character_uv) / vec2(textureSize(characters, 0)));
     vec2 cp_screen = character_uv / vec2(DISPLAY_WIDTH, DISPLAY_HEIGHT);
-    finalColor = character_color;
+
+    float color_threshold = step(0.5, character_color.r);
+    vec4 character_brightness = fragColor * (1.0 - color_threshold) + character_color * color_threshold;
+    character_brightness.a = 1.0;
+
+    finalColor = character_brightness;
 //     finalColor = vec4(fragTexCoord.x, fragTexCoord.y, 0, 1);
 }

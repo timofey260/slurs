@@ -54,7 +54,7 @@ void SetShaderInfo(int width, int height) {
                  SHADER_UNIFORM_INT);
 }
 
-void InitSlurs(int width, int height) {
+SlursWindow *InitSlurs(int width, int height) {
   InitWindow(width * CHAR_WIDTH * SCALE, height * CHAR_HEIGHT * SCALE,
              "Slurs window");
   Image charmap = GenImageColor(CHARIMAGE_WIDTH, CHARIMAGE_HEIGHT, BLACK);
@@ -72,28 +72,19 @@ void InitSlurs(int width, int height) {
   Texture characters_texture = LoadTextureFromImage(charmap);
   _slurs_window = (SlursMainWindow){width, height, charbuf, character_count,
                                     characters_texture};
-  _slurs_window.main_window = malloc(sizeof(SlursWindow));
-  *_slurs_window.main_window = (SlursWindow){false, 0, 0, width, height};
+  _slurs_window.main_window = NewWin(0, 0, width, height);
   _slurs_window.viewport_texture =
       LoadRenderTexture(width * CHAR_WIDTH, height * CHAR_HEIGHT);
 
-  int value;
-  /*
+  _slurs_window.background_color = BLACK;
+  UnloadImage(charmap);
+  int value = 0;
   for (int i = 0; i < character_count; i++) {
-    value = GetRandomValue(0, 256);
-    SetShaderValue(_slurs_shader_info.text_shader,
-                   _slurs_shader_info.text_shader_attr_loc[i], &value,
-                   SHADER_UNIFORM_INT);
-  }*/
-  char text[] = "a quick brown fox jumped over a lazy dog. A QUICK BROWN FOX "
-                "JUMPED OVER A LAZY DOG!";
-  for (int i = 0; i < strlen(text); i++) {
-    value = text[i];
     SetShaderValue(_slurs_shader_info.text_shader,
                    _slurs_shader_info.text_shader_attr_loc[i], &value,
                    SHADER_UNIFORM_INT);
   }
-  UnloadImage(charmap);
+  return _slurs_window.main_window;
 }
 
 void RunSlurs() {
@@ -105,7 +96,7 @@ void RunSlurs() {
                           _slurs_shader_info.text_shader_texture_loc,
                           _slurs_window.character_map);
     DrawTextureEx(_slurs_window.viewport_texture.texture, (Vector2){0, 0}, 0,
-                  SCALE, WHITE);
+                  SCALE, _slurs_window.background_color);
     EndShaderMode();
     // DrawFPS(10, 10);
 #ifdef DEBUG
@@ -121,3 +112,5 @@ void CloseSlurs() {
   UnloadRenderTexture(_slurs_window.viewport_texture);
   CloseWindow();
 }
+
+SlursWindow *GetMainWindow() { return _slurs_window.main_window; }
