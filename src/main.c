@@ -5,6 +5,7 @@
 #include "slurs.h"
 
 int main(int argc, char *argv[]) {
+  SetShaderPath("src/assets/textshader.fs", false);
   AddImagePath("src/assets/characters.png", false);
   InitSlurs(32, 16);
   RunSlurs();

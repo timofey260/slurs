@@ -3,4 +3,8 @@
 ./raylib/
 ./.idea
 ./app.test
-./.
+.cache
+app.test
+out
+raylib
+obj

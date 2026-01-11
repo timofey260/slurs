@@ -2,7 +2,19 @@
 #define INCLUDEsrcwindowwindow
 
 #include "raylib.h"
-#include <string.h>
+
+#define CHAR_WIDTH 6
+#define CHAR_HEIGHT 12
+#define SCALE 4
+#define FPS 60
+
+#define CHARIMAGE_WIDTH CHAR_WIDTH * 32
+#define CHARIMAGE_HEIGHT CHAR_HEIGHT * 16
+
+typedef struct {
+  bool dirty;
+  int x, y, w, h;
+} SlursWindow;
 
 typedef struct {
   int width, height;
@@ -17,18 +29,16 @@ typedef struct {
   int text_shader_DISPLAY_WIDTH_loc;
   int text_shader_DISPLAY_HEIGHT_loc;
   RenderTexture viewport_texture;
+  SlursWindow *main_window;
 } SlursMainWindow;
 
 typedef struct {
   const char *path;
   bool from_resource;
-} ImagePath;
-
-static SlursMainWindow _slurs_window;
-static ImagePath *_slurs_image_paths = NULL;
-static int _slurs_images_count = 0;
+} FilePath;
 
 void AddImagePath(const char *path, bool fromResource);
+void SetShaderPath(const char *path, bool fromResource);
 void InitSlurs(int width, int height);
 void RunSlurs();
 void CloseSlurs();

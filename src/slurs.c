@@ -1,49 +1,41 @@
 #include "slurs.h"
 #include "raylib.h"
 #include "slurutils.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-void AddImagePath(const char *path, bool fromResource) {
-  if (_slurs_images_count == 0) {
-    _slurs_image_paths = malloc(sizeof(ImagePath));
-    _slurs_images_count = 1;
-  } else {
-    _slurs_images_count++;
-    _slurs_image_paths =
-        realloc(_slurs_image_paths, sizeof(ImagePath) * _slurs_images_count);
-  }
-  _slurs_image_paths[_slurs_images_count - 1] = (ImagePath){path, fromResource};
-}
+SlursMainWindow _slurs_window;
+FilePath *_slurs_image_paths = NULL;
+FilePath _slurs_shader_path = {0};
+int _slurs_images_count = 0;
 
 void InitSlurs(int width, int height) {
   InitWindow(width * CHAR_WIDTH * SCALE, height * CHAR_HEIGHT * SCALE,
              "Slurs window");
   Image charmap = GenImageColor(CHARIMAGE_WIDTH, CHARIMAGE_HEIGHT, BLACK);
-  printf("Loading Images! %d\n", _slurs_images_count);
   for (int i = 0; i < _slurs_images_count; i++) {
     Image img = LoadImage(_slurs_image_paths[i].path);
     Rectangle sourcerect = (Rectangle){0, 0, img.width, img.height};
-    printf("Loaded image!\n");
     ImageDraw(&charmap, img, sourcerect, sourcerect, WHITE);
     UnloadImage(img);
   }
-  printf("Loaded Images!");
 
   int character_count = width * height;
   int *charbuf = malloc(sizeof(int) * width * height);
   Texture characters_texture = LoadTextureFromImage(charmap);
   _slurs_window = (SlursMainWindow){width, height, charbuf, character_count,
                                     characters_texture};
-
+  _slurs_window.main_window = malloc(sizeof(SlursWindow));
+  *_slurs_window.main_window = (SlursWindow){false, 0, 0, width, height};
   _slurs_window.viewport_texture =
       LoadRenderTexture(width * CHAR_WIDTH, height * CHAR_HEIGHT);
 
   // loading shader
   char str[6]; // just in case
   sprintf(str, "%d", character_count);
-  char *text_file = LoadFileText("src/assets/textshader.fs");
+  char *text_file = LoadFileText(_slurs_shader_path.path);
   char *shadertext = TextReplace(text_file, "%char_amount%", str);
   _slurs_window.text_shader = LoadShaderFromMemory(NULL, shadertext);
   _slurs_window.text_shader_texture_loc =
