@@ -21,6 +21,11 @@ typedef struct {
   int *characters;
   int character_count;
   Texture character_map;
+  RenderTexture viewport_texture;
+  SlursWindow *main_window;
+} SlursMainWindow;
+
+typedef struct {
   Shader text_shader;
   int text_shader_texture_loc;
   int *text_shader_attr_loc;
@@ -28,9 +33,7 @@ typedef struct {
   int text_shader_CHAR_HEIGHT_loc;
   int text_shader_DISPLAY_WIDTH_loc;
   int text_shader_DISPLAY_HEIGHT_loc;
-  RenderTexture viewport_texture;
-  SlursWindow *main_window;
-} SlursMainWindow;
+} SlursShaderInfo;
 
 typedef struct {
   const char *path;
