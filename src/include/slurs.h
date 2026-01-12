@@ -2,12 +2,18 @@
 #define INCLUDEsrcwindowwindow
 
 #include "raylib.h"
+#include <stdint.h>
 
 #define CHAR_WIDTH 6
 #define CHAR_HEIGHT 12
 #define SCALE 4
 #define FPS 60
 #define ATTR_OFFSET (16 - ATTR_COUNT)
+
+#define COLORS 256
+#define COLOR_PAIRS 256
+#define COLOR_TYPE char
+#define COLOR_PAIR_TYPE char
 
 #define CHARIMAGE_WIDTH CHAR_WIDTH * 32
 #define CHARIMAGE_HEIGHT CHAR_HEIGHT * 16
@@ -21,30 +27,45 @@ typedef enum {
 } CHAR_ATTRIBUTES;
 
 typedef struct {
+  uint16_t character;
+  uint16_t attribute;
+} SlursCharacter;
+
+typedef struct {
   int x, y, w, h;
-  int *characters;
+  SlursCharacter *characters;
   bool dirty;
   int alphachar;
 } SlursWindow;
 
 typedef struct {
+  int r, g, b;
+} SlursColor;
+
+typedef struct {
+  COLOR_TYPE fg;
+  COLOR_TYPE bg;
+} SlursColorPair;
+
+typedef struct {
   int width, height;
-  int *characters;
   int character_count;
   Texture character_map;
   RenderTexture viewport_texture;
   SlursWindow *main_window;
   Color background_color;
+  SlursColor colors[COLORS];
+  SlursColorPair color_pairs[COLOR_PAIRS];
 } SlursMainWindow;
 
 typedef struct {
   Shader text_shader;
   int text_shader_texture_loc;
-  int *text_shader_attr_loc;
-  int text_shader_CHAR_WIDTH_loc;
-  int text_shader_CHAR_HEIGHT_loc;
-  int text_shader_DISPLAY_WIDTH_loc;
-  int text_shader_DISPLAY_HEIGHT_loc;
+  int *text_shader_char_loc;
+  int text_shader_color_loc[COLORS];
+  int text_shader_colorpair_loc[COLOR_PAIRS];
+  int text_shader_CHAR_SIZE_loc;
+  int text_shader_DISPLAY_SIZE_loc;
 } SlursShaderInfo;
 
 typedef struct {
@@ -89,13 +110,21 @@ void AddStr(SlursWindow *window, const char *text, int x, int y,
 // so can access unallocated memory
 int Window2Char(SlursWindow *window, int x, int y);
 // Adds attribute to character
-int AddAttr(int ch, CHAR_ATTRIBUTES attr);
+SlursCharacter AddAttr(uint16_t ch, CHAR_ATTRIBUTES attr);
 // Update shader values to screen ones
 void RefreshWin(SlursWindow *window);
 // Clear window to specified character
 //
 // Does not refresh screen
-void ClearWindow(SlursWindow *window, int character);
+void ClearWindow(SlursWindow *window, uint16_t character, uint16_t attr);
+// Set Slurs's color
+//
+// NOTE: There is hard limit to COLORS different colors
+void SetColor(COLOR_TYPE i, int r, int g, int b);
+// Set Slurs color pair
+//
+// NOTE: There is hard  limit to COLOR_PAIRS different color pairs
+void SetColorPair(COLOR_PAIR_TYPE i, COLOR_TYPE fg, COLOR_TYPE bg);
 
 // window.c
 

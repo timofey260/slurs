@@ -1,5 +1,4 @@
 #include "slurs.h"
-#include <stdbool.h>
 #include <stdlib.h>
 
 extern SlursMainWindow _slurs_window;

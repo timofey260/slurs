@@ -1,5 +1,6 @@
 #include "slurs.h"
 #include "raylib.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +10,37 @@ FilePath *_slurs_image_paths = NULL;
 FilePath _slurs_shader_path = {0};
 SlursShaderInfo _slurs_shader_info;
 int _slurs_images_count = 0;
+
+void ShaderFullClear() {
+  int value = 0;
+  int ivec2[] = {0, 0};
+  int ivec3[] = {0, 0, 0};
+
+  // clearing screen
+  for (int i = 0; i < _slurs_window.character_count; i++) {
+    SetShaderValue(_slurs_shader_info.text_shader,
+                   _slurs_shader_info.text_shader_char_loc[i], &ivec2,
+                   SHADER_UNIFORM_IVEC2);
+  }
+  for (int i = 0; i < COLORS; i++) {
+    SetShaderValue(_slurs_shader_info.text_shader,
+                   _slurs_shader_info.text_shader_color_loc[i], &ivec3,
+                   SHADER_UNIFORM_IVEC3);
+  }
+  for (int i = 0; i < COLOR_PAIRS; i++) {
+    SetShaderValue(_slurs_shader_info.text_shader,
+                   _slurs_shader_info.text_shader_colorpair_loc[i], &ivec2,
+                   SHADER_UNIFORM_IVEC2);
+  }
+  float defaultcolor[] = {255, 255, 255};
+  SetShaderValue(_slurs_shader_info.text_shader,
+                 _slurs_shader_info.text_shader_color_loc[1], &defaultcolor,
+                 SHADER_UNIFORM_IVEC3);
+  float defaultpair[] = {1, 0};
+  SetShaderValue(_slurs_shader_info.text_shader,
+                 _slurs_shader_info.text_shader_color_loc[0], &defaultpair,
+                 SHADER_UNIFORM_IVEC2);
+}
 
 void SetShaderInfo(int width, int height) {
   int character_count = width * height;
@@ -20,38 +52,36 @@ void SetShaderInfo(int width, int height) {
   _slurs_shader_info.text_shader = LoadShaderFromMemory(NULL, shadertext);
   _slurs_shader_info.text_shader_texture_loc =
       GetShaderLocation(_slurs_shader_info.text_shader, "characters");
-  _slurs_shader_info.text_shader_CHAR_WIDTH_loc =
-      GetShaderLocation(_slurs_shader_info.text_shader, "CHAR_WIDTH");
-  _slurs_shader_info.text_shader_CHAR_HEIGHT_loc =
-      GetShaderLocation(_slurs_shader_info.text_shader, "CHAR_HEIGHT");
-  _slurs_shader_info.text_shader_DISPLAY_WIDTH_loc =
-      GetShaderLocation(_slurs_shader_info.text_shader, "DISPLAY_WIDTH");
-  _slurs_shader_info.text_shader_DISPLAY_HEIGHT_loc =
-      GetShaderLocation(_slurs_shader_info.text_shader, "DISPLAY_HEIGHT");
+  _slurs_shader_info.text_shader_CHAR_SIZE_loc =
+      GetShaderLocation(_slurs_shader_info.text_shader, "CHAR_SIZE");
+  _slurs_shader_info.text_shader_DISPLAY_SIZE_loc =
+      GetShaderLocation(_slurs_shader_info.text_shader, "DISPLAY_SIZE");
   // individual character attributes
-  _slurs_shader_info.text_shader_attr_loc =
+  _slurs_shader_info.text_shader_char_loc =
       malloc(sizeof(int) * character_count);
   for (int i = 0; i < character_count; i++) {
-    _slurs_shader_info.text_shader_attr_loc[i] = GetShaderLocation(
+    _slurs_shader_info.text_shader_char_loc[i] = GetShaderLocation(
         _slurs_shader_info.text_shader, TextFormat("text_characters[%i]", i));
+  }
+  for (int i = 0; i < COLORS; i++) {
+    _slurs_shader_info.text_shader_color_loc[i] = GetShaderLocation(
+        _slurs_shader_info.text_shader, TextFormat("colors[%i]", i));
+  }
+  for (int i = 0; i < COLOR_PAIRS; i++) {
+    _slurs_shader_info.text_shader_colorpair_loc[i] = GetShaderLocation(
+        _slurs_shader_info.text_shader, TextFormat("color_pairs[%i]", i));
   }
   UnloadFileText(text_file);
 
-  int char_width = CHAR_WIDTH;
-  int char_height = CHAR_HEIGHT;
+  int char_size[] = {CHAR_WIDTH, CHAR_HEIGHT};
+  int display_size[] = {width, height};
   // setting those values
   SetShaderValue(_slurs_shader_info.text_shader,
-                 _slurs_shader_info.text_shader_CHAR_WIDTH_loc, &char_width,
-                 SHADER_UNIFORM_INT);
+                 _slurs_shader_info.text_shader_CHAR_SIZE_loc, &char_size,
+                 SHADER_UNIFORM_IVEC2);
   SetShaderValue(_slurs_shader_info.text_shader,
-                 _slurs_shader_info.text_shader_CHAR_HEIGHT_loc, &char_height,
-                 SHADER_UNIFORM_INT);
-  SetShaderValue(_slurs_shader_info.text_shader,
-                 _slurs_shader_info.text_shader_DISPLAY_WIDTH_loc, &width,
-                 SHADER_UNIFORM_INT);
-  SetShaderValue(_slurs_shader_info.text_shader,
-                 _slurs_shader_info.text_shader_DISPLAY_HEIGHT_loc, &height,
-                 SHADER_UNIFORM_INT);
+                 _slurs_shader_info.text_shader_DISPLAY_SIZE_loc, &display_size,
+                 SHADER_UNIFORM_IVEC2);
 }
 
 SlursWindow *InitSlurs(int width, int height) {
@@ -68,22 +98,18 @@ SlursWindow *InitSlurs(int width, int height) {
   SetShaderInfo(width, height);
 
   int character_count = width * height;
-  int *charbuf = malloc(sizeof(int) * width * height);
   Texture characters_texture = LoadTextureFromImage(charmap);
-  _slurs_window = (SlursMainWindow){width, height, charbuf, character_count,
-                                    characters_texture};
+  _slurs_window =
+      (SlursMainWindow){width, height, character_count, characters_texture};
   _slurs_window.main_window = NewWin(0, 0, width, height);
   _slurs_window.viewport_texture =
       LoadRenderTexture(width * CHAR_WIDTH, height * CHAR_HEIGHT);
 
   _slurs_window.background_color = BLACK;
   UnloadImage(charmap);
-  int value = 0;
-  for (int i = 0; i < character_count; i++) {
-    SetShaderValue(_slurs_shader_info.text_shader,
-                   _slurs_shader_info.text_shader_attr_loc[i], &value,
-                   SHADER_UNIFORM_INT);
-  }
+
+  ShaderFullClear();
+
   return _slurs_window.main_window;
 }
 
